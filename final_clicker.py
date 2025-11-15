@@ -1,70 +1,65 @@
-import pyautogui
+# transcript_clicker.py
+# Minimal pyautogui clicker for your transcript workflow
+# Abort any time by moving the mouse to the top-left corner.
+
 import time
+import sys
 
-print("Starting automation in 5 seconds...")
-time.sleep(5)
+try:
+    import pyautogui
+except ImportError:
+    print("Install dependencies: pip install pyautogui pillow")
+    sys.exit(1)
 
-click_sequence = [
-    (33, 36),     # 1
-    (614, 986),   # 2
-    (604, 804),   # 3
-    (153, 766),   # 4
-    (364, 699),   # 5
-    (110, 876),   # 6
-    (111, 851),   # 7
-    (411, 561),   # 8
-    (224, 674),   # 9
-    (826, 547),   # 10
-    (609, 614),   # 11
-    (1058, 553)   # 12
+pyautogui.FAILSAFE = True  # move mouse to top-left to abort
+
+# Coordinates as (x, y). Update these to match your screen if needed.
+CLICK_SEQUENCE = [
+    (796, 485),   # 1
+    (1005, 744),  # 2
+    (854, 745),   # 3
+    (875, 743),   # 4
+    (877, 738),   # 5 paste here
+    (1194, 73),   # 6
+    (108, 194),   # 7
+    (1194, 73),   # 8
+    (1276, 193),  # 9
 ]
 
-for i, (x, y) in enumerate(click_sequence):
-    print(f"Clicking position {i+1}: ({x}, {y})")
-    pyautogui.click(x, y)
+# Optional per-step sleeps in seconds
+SLEEP_AFTER = {
+    0: 0.5, 1: 0.5, 2: 0.5, 3: 0.7, 4: 1.0, 5: 0.7, 6: 0.7, 7: 0.7, 8: 0.7
+}
 
-    # Default pause
-    if i < 7:
-        time.sleep(0.7)
-    else:
-        time.sleep(1.2)
+# Steps where we paste with Ctrl+V (use zero-based indices)
+PASTE_STEPS = {4}
 
-    # Scroll after 2nd click
-    if i == 1:
-        print("Pausing briefly before scrolling...")
-        time.sleep(2)
-        print("Moving mouse over scrollable area...")
-        pyautogui.moveTo(600, 800)
-        print("Scrolling slightly...")
-        pyautogui.scroll(-235)
-        time.sleep(0.75)
+# Steps that should scroll after clicking: index -> amount (negative scrolls down)
+SCROLL_AFTER = {1: -300, 8: -800}
 
-    # Paste after 4th click
-    if i == 3:
-        print("Extra pause before click 4 (input box)...")
-        time.sleep(1.25)
-        print("Repositioning mouse gently before click...")
-        pyautogui.moveTo(x, y)
-        time.sleep(0.75)
-        pyautogui.click()
-        print("Click 4 done. Waiting for input to activate...")
-        time.sleep(1.25)
-        print("Now pasting clipboard content (Ctrl+V)...")
-        pyautogui.hotkey('ctrl', 'v')
-        time.sleep(1.25)
+def main():
+    print("Starting in 3 seconds. Move mouse to top-left to abort.")
+    time.sleep(3)
 
-    # Slight slowdown after click 6 → 7
-    if i == 5:
-        print("Slowing down after click 6...")
-        time.sleep(1.4)
+    total = len(CLICK_SEQUENCE)
+    for i, (x, y) in enumerate(CLICK_SEQUENCE):
+        print(f"[{i+1}/{total}] Click at ({x}, {y})")
+        pyautogui.click(x=x, y=y)
 
-    # Slight slowdown after click 7
-    if i == 6:
-        print("Slowing down after click 7...")
-        time.sleep(1.8)
+        if i in PASTE_STEPS:
+            time.sleep(0.2)
+            pyautogui.hotkey("ctrl", "v")
+            print("  pasted")
 
-# Big scroll AFTER final click
-print("Final click complete. Performing big scroll...")
-pyautogui.moveTo(752, 482)
-pyautogui.scroll(-7000)
-time.sleep(0.5)
+        if i in SCROLL_AFTER:
+            amt = SCROLL_AFTER[i]
+            time.sleep(0.2)
+            pyautogui.scroll(amt)
+            print(f"  scrolled {amt}")
+
+        time.sleep(SLEEP_AFTER.get(i, 0.5))
+
+    print("Done.")
+
+if __name__ == "__main__":
+    main()
